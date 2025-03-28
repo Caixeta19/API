@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dados do País</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        button:hover:enabled {
+            background-color: #0056b3;
+        }
+        #resultado {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            display: none;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+        }
+        img {
+            width: 100px;
+            display: block;
+            margin: 10px auto;
+        }
+    </style>
+</head>
+<body>
+    <h2>Buscar Informações sobre o País</h2>
+    <button id="buscarBtn">Buscar Dados</button>
+    
+    <div id="status"></div> <!-- Indicador de status -->
+    <div id="resultado"></div>
+<script>
+    document.getElementById("buscarBtn").addEventListener("click", function () {
+        const botao = this;
+        botao.disabled = true;
+        botao.textContent = "Buscando...";
+
+        buscarDados().finally(() => {
+            botao.disabled = false;
+            botao.textContent = "Buscar Dados";
+        });
+    });
+
+    function buscarDados() {
+        const statusElement = document.getElementById("status");
+        const resultadoElement = document.getElementById("resultado");
+
+        statusElement.innerHTML = "Carregando...";
+        resultadoElement.style.display = "none";
+        resultadoElement.innerHTML = "";
+
+        const apiUrl = "http://localhost:8080/APITESTE/consumeAPI"; 
+
+        return fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Dados recebidos:", data);
+
+                let pais = Array.isArray(data) ? data[0] : data;
+
+                if (!pais || Object.keys(pais).length === 0) {
+                    throw new Error("Nenhum dado encontrado.");
+                }
+
+                let nome = pais.name?.common || "Desconhecido";
+                let populacao = pais.population ? pais.population.toLocaleString() : "Não disponível";
+                let capital = pais.capital?.[0] || "Não disponível";
+                let moeda = pais.currencies ? Object.values(pais.currencies)[0]?.name : "Não disponível";
+                let bandeira = pais.flags?.png || "";
+                let continente = pais.continents?.[0] || "Não disponível";
+                let linguagem = pais.languages ? Object.values(pais.languages).join(", ") : "Não disponível";
+
+                resultadoElement.innerHTML = `
+                    <h3>${nome}</h3>
+                    <p><strong>População:</strong> ${populacao}</p>
+                    <p><strong>Capital:</strong> ${capital}</p>
+                    <p><strong>Moeda:</strong> ${moeda}</p>
+                    <p><strong>Continente:</strong> ${continente}</p>
+                    <p><strong>Língua(s):</strong> ${linguagem}</p>
+                    ${bandeira ? `<img src="${bandeira}" alt="Bandeira de ${nome}">` : ""}
+                `;
+                resultadoElement.style.display = "block";
+                statusElement.innerHTML = "";
+            })
+            .catch(error => {
+                console.error("Erro ao buscar API:", error);
+                statusElement.innerHTML = `<p style="color:red;">Erro: ${error.message}</p>`;
+            });
+    }
+</script>
+
+</body>
+</html>
