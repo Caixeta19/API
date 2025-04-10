@@ -17,7 +17,7 @@ public class ApiConsumerServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String apiUrl = "https://restcountries.com/v3.1/name/USA";
+        String apiUrl = "https://restcountries.com/v3.1/name/argentina";
 
         response.setContentType("application/json;charset=UTF-8");
 
